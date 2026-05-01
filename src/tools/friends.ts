@@ -13,6 +13,10 @@ const getFriendsListSchema: any = z.object({
   offline: z.boolean().optional(),
 })
 
+const friendActionSchema: any = z.object({
+  userId: z.string().min(1),
+})
+
 const sendFriendRequestToolConfig: any = {
   title: 'Send a friend request to another user.',
   inputSchema: sendFriendRequestSchema,
@@ -42,6 +46,21 @@ const getFriendsListToolConfig: any = {
     '- "location"\n' +
     '- "friendKey"',
   inputSchema: getFriendsListSchema,
+}
+
+const friendStatusToolConfig: any = {
+  title: 'Check the friend status with another user.',
+  inputSchema: friendActionSchema,
+}
+
+const unfriendToolConfig: any = {
+  title: 'Remove a friend by user ID.',
+  inputSchema: friendActionSchema,
+}
+
+const mutualFriendsToolConfig: any = {
+  title: 'List mutual friends with another user.',
+  inputSchema: friendActionSchema,
 }
 
 export const createFriendsTools = (server: McpServer, vrchatClient: VRChatClient) => {
@@ -80,6 +99,54 @@ export const createFriendsTools = (server: McpServer, vrchatClient: VRChatClient
         }
       } catch (error) {
         return { content: [{ type: 'text', text: 'Failed to retrieve friends: ' + error }] }
+      }
+    }
+  )
+
+  toolServer.tool(
+    'vrchat_get_friend_status',
+    friendStatusToolConfig,
+    async (params: any) => {
+      try {
+        await vrchatClient.auth()
+        const response = await vrchatClient.vrchat.getFriendStatus({ path: { userId: params.userId } })
+        return {
+          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+        }
+      } catch (error) {
+        return { content: [{ type: 'text', text: 'Failed to retrieve friend status: ' + error }] }
+      }
+    }
+  )
+
+  toolServer.tool(
+    'vrchat_unfriend',
+    unfriendToolConfig,
+    async (params: any) => {
+      try {
+        await vrchatClient.auth()
+        const response = await vrchatClient.vrchat.unfriend({ path: { userId: params.userId } })
+        return {
+          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+        }
+      } catch (error) {
+        return { content: [{ type: 'text', text: 'Failed to unfriend user: ' + error }] }
+      }
+    }
+  )
+
+  toolServer.tool(
+    'vrchat_get_mutual_friends',
+    mutualFriendsToolConfig,
+    async (params: any) => {
+      try {
+        await vrchatClient.auth()
+        const response = await vrchatClient.vrchat.getMutualFriends({ path: { userId: params.userId } })
+        return {
+          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+        }
+      } catch (error) {
+        return { content: [{ type: 'text', text: 'Failed to get mutual friends: ' + error }] }
       }
     }
   )

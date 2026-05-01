@@ -13,6 +13,14 @@ const searchGroupsParams: Record<string, AnySchema> = {
   n: z.number().min(1).max(100).optional().describe('Number of groups to return, from 1 to 100'),
 }
 
+const getGroupParams: Record<string, AnySchema> = {
+  groupId: z.string().min(1).describe('The VRChat group ID to look up'),
+}
+
+const leaveGroupParams: Record<string, AnySchema> = {
+  groupId: z.string().min(1).describe('The group ID to leave'),
+}
+
 export const createGroupsTools = (server: McpServer, vrchatClient: VRChatClient) => {
   const toolServer = server as any
   // @ts-ignore: MCP tool overloads are too strict for this migration boundary
@@ -53,6 +61,44 @@ export const createGroupsTools = (server: McpServer, vrchatClient: VRChatClient)
         }
       } catch (error) {
         return { content: [{ type: 'text', text: 'Failed to search groups: ' + error }] }
+      }
+    }
+  )
+
+  // @ts-ignore: MCP tool overloads are too strict for this migration boundary
+  toolServer.tool(
+    'vrchat_get_group',
+    'Get information about a group by its ID.',
+    getGroupParams as any,
+    async (params: any) => {
+      try {
+        await vrchatClient.auth()
+        const response = await vrchatClient.vrchat.getGroup({
+          path: { groupId: params.groupId }
+        })
+        return {
+          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+        }
+      } catch (error) {
+        return { content: [{ type: 'text', text: 'Failed to get group: ' + error }] }
+      }
+    }
+  )
+
+  // @ts-ignore: MCP tool overloads are too strict for this migration boundary
+  toolServer.tool(
+    'vrchat_leave_group',
+    'Leave a group by its ID.',
+    leaveGroupParams as any,
+    async (params: any) => {
+      try {
+        await vrchatClient.auth()
+        const response = await vrchatClient.vrchat.leaveGroup({ path: { groupId: params.groupId } })
+        return {
+          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+        }
+      } catch (error) {
+        return { content: [{ type: 'text', text: 'Failed to leave group: ' + error }] }
       }
     }
   )

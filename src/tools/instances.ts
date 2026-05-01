@@ -17,6 +17,10 @@ const createInstanceParams: Record<string, AnySchema> = {
   inviteOnly: z.boolean().optional().describe('Whether the instance is invite only'),
 }
 
+const getInstanceByShortNameParams: Record<string, AnySchema> = {
+  shortName: z.string().min(1).describe('The short name of the instance (e.g. "abc123~hidden~friends~g")'),
+}
+
 export const createInstancesTools = (server: McpServer, vrchatClient: VRChatClient) => {
   const toolServer = server as any
   // @ts-ignore: MCP tool overloads are too strict for this migration boundary
@@ -73,6 +77,26 @@ export const createInstancesTools = (server: McpServer, vrchatClient: VRChatClie
         }
       } catch (error) {
         return { content: [{ type: 'text', text: 'Failed to create instance: ' + error }] }
+      }
+    }
+  )
+
+  // @ts-ignore: MCP tool overloads are too strict for this migration boundary
+  toolServer.tool(
+    'vrchat_get_instance_by_short_name',
+    'Get an instance by its short name (e.g. "abc123~hidden~friends~g").',
+    getInstanceByShortNameParams as any,
+    async (params: any) => {
+      try {
+        await vrchatClient.auth()
+        const instance = await vrchatClient.vrchat.getInstanceByShortName({
+          path: { shortName: params.shortName }
+        })
+        return {
+          content: [{ type: 'text', text: JSON.stringify(instance.data, null, 2) }]
+        }
+      } catch (error) {
+        return { content: [{ type: 'text', text: 'Failed to get instance by short name: ' + error }] }
       }
     }
   )

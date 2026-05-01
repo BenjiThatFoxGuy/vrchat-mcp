@@ -12,6 +12,10 @@ const listNotificationsParams: Record<string, AnySchema> = {
   offset: z.number().min(0).optional().describe('Offset for pagination, minimum 0'),
 }
 
+const getNotificationParams: Record<string, AnySchema> = {
+  notificationId: z.string().min(1).describe('The notification ID (e.g. "not_abc123")'),
+}
+
 export const createNotificationsTools = (server: McpServer, vrchatClient: VRChatClient) => {
   const toolServer = server as any
   // @ts-ignore: MCP tool overloads are too strict for this migration boundary
@@ -37,6 +41,26 @@ export const createNotificationsTools = (server: McpServer, vrchatClient: VRChat
         }
       } catch (error) {
         return { content: [{ type: 'text', text: 'Failed to list notifications: ' + error }] }
+      }
+    }
+  )
+
+  // @ts-ignore: MCP tool overloads are too strict for this migration boundary
+  toolServer.tool(
+    'vrchat_get_notification',
+    'Get a single notification by its ID.',
+    getNotificationParams as any,
+    async (params: any) => {
+      try {
+        await vrchatClient.auth()
+        const response = await vrchatClient.vrchat.getNotification({
+          path: { notificationId: params.notificationId }
+        })
+        return {
+          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+        }
+      } catch (error) {
+        return { content: [{ type: 'text', text: 'Failed to get notification: ' + error }] }
       }
     }
   )

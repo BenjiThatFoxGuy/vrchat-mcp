@@ -22,6 +22,11 @@ const addFavoriteParams: Record<string, AnySchema> = {
   tags: z.array(z.string()).describe('Tags/groups to assign this favorite to'),
 }
 
+const removeFavoriteParams: Record<string, AnySchema> = {
+  type: z.enum(['world', 'friend', 'avatar']).describe('The type of favorite to remove'),
+  favoriteId: z.string().describe('The ID of the item to remove from favorites'),
+}
+
 export const createFavoritesTools = (server: McpServer, vrchatClient: VRChatClient) => {
   const toolServer = server as any
   // @ts-ignore: MCP tool overloads are too strict for this migration boundary
@@ -93,6 +98,49 @@ export const createFavoritesTools = (server: McpServer, vrchatClient: VRChatClie
         }
       } catch (error) {
         return { content: [{ type: 'text', text: 'Failed to add favorite: ' + error }] }
+      }
+    }
+  )
+
+  // @ts-ignore: MCP tool overloads are too strict for this migration boundary
+  toolServer.tool(
+    'vrchat_remove_favorite',
+    'Remove a favorite (world, friend, or avatar) from your favorites list.',
+    removeFavoriteParams as any,
+    async (params: any) => {
+      try {
+        await vrchatClient.auth()
+        const response = await vrchatClient.vrchat.removeFavorite({
+          body: {
+            type: params.type,
+            favoriteId: params.favoriteId,
+          }
+        })
+        return {
+          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+        }
+      } catch (error) {
+        return { content: [{ type: 'text', text: 'Failed to remove favorite: ' + error }] }
+      }
+    }
+  )
+
+  // @ts-ignore: MCP tool overloads are too strict for this migration boundary
+  toolServer.tool(
+    'vrchat_get_favorited_avatars',
+    'List favorited avatars.',
+    { n: z.number().min(1).max(100).optional().describe('Number of results to return') } as any,
+    async (params: any) => {
+      try {
+        await vrchatClient.auth()
+        const response = await vrchatClient.vrchat.getFavoritedAvatars({
+          query: { n: params.n }
+        })
+        return {
+          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+        }
+      } catch (error) {
+        return { content: [{ type: 'text', text: 'Failed to get favorited avatars: ' + error }] }
       }
     }
   )

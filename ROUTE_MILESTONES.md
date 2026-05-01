@@ -25,16 +25,25 @@ These routes are currently exposed by the MCP server in `src/tools/*`.
 - `vrchat_list_favorite_groups`
 - `vrchat_list_favorites`
 - `vrchat_add_favorite`
+- `vrchat_remove_favorite`
+- `vrchat_get_favorited_avatars`
 - `vrchat_list_invite_messages`
 - `vrchat_request_invite`
 - `vrchat_get_invite_message`
 - `vrchat_list_notifications`
+- `vrchat_get_notification`
+- `vrchat_get_world`
+- `vrchat_list_active_worlds`
+- `vrchat_list_recent_worlds`
+- `vrchat_get_instance_by_short_name`
+- `vrchat_get_group`
+- `vrchat_leave_group`
 
 ## Unsupported routes (yet)
 
 These are high-value routes exposed by the installed `vrchat@2.21.7` SDK that are not currently wrapped in MCP tools.
 
-### User / search
+### User / social
 - `vrchat_get_blocked_groups` (list blocked groups)
 - `vrchat_get_user_notes` (fetch notes attached to a user)
 - `vrchat_get_user_inventory_item` (user inventory item lookup)
@@ -50,32 +59,23 @@ These are high-value routes exposed by the installed `vrchat@2.21.7` SDK that ar
 - `vrchat_get_mutuals`
 
 ### Favorites
-- `vrchat_get_favorited_avatars`
-- `vrchat_remove_favorite`
 - `vrchat_get_favorite_group` / `vrchat_update_favorite_group`
 - `vrchat_clear_favorite_group`
 
 ### Notifications / invites
 - `vrchat_clear_notifications`
-- `vrchat_get_notification`
 - `vrchat_mark_notification_as_read`
 - `vrchat_respond_invite`
 - `vrchat_invite_user`
 - `vrchat_get_invite_message` (already supported)
 
 ### Worlds / instances
-- `vrchat_get_world`
-- `vrchat_get_active_worlds`
-- `vrchat_get_recent_worlds`
-- `vrchat_get_instance_by_short_name`
 - `vrchat_get_world_metadata`
 - `vrchat_get_world_publish_status`
 
 ### Groups
-- `vrchat_get_group`
 - `vrchat_get_group_members`
 - `vrchat_get_group_invites`
-- `vrchat_leave_group`
 - `vrchat_get_group_announcements`
 - `vrchat_get_group_roles`
 - `vrchat_get_group_transferability`

@@ -1,57 +1,42 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp'
+import type { AnySchema } from '@modelcontextprotocol/sdk/server/zod-compat'
 import { VRChatClient } from '../VRChatClient'
 import { z } from 'zod'
 
+const listNotificationsParams: Record<string, AnySchema> = {
+  type: z.enum(['friendRequest', 'invite', 'requestInvite', 'vote', 'transferOwnership', 'groupJoined', 'groupRequest', 'groupInvisible', 'groupVisible', 'groupMemberSet', 'groupRoleChange', 'groupAnnouncement', 'groupBan', 'groupKick', 'groupTransferOwnership', 'instanceQueueReady', 'instanceQueuePosition', 'instanceQueueDefault', 'report', 'moderationReport', 'moderationReview', 'ticket']).optional().describe('Filter notifications by type'),
+  sent: z.boolean().optional().describe('Filter notifications by whether they have been sent'),
+  hidden: z.boolean().optional().describe('Filter notifications by whether they are hidden'),
+  after: z.string().optional().describe('Only return notifications after this date (ISO 8601 format)'),
+  n: z.number().min(1).max(100).optional().describe('Number of notifications to return, from 1 to 100'),
+  offset: z.number().min(0).optional().describe('Offset for pagination, minimum 0'),
+}
+
 export const createNotificationsTools = (server: McpServer, vrchatClient: VRChatClient) => {
-  server.tool(
-    // Name
-    'vrchat_get_notifications',
-    // Description
-    'Retrieve a list of VRChat notifications.',
-    {
-      type: z.string().optional().describe(
-        'Only send notifications of this type. Use "all" for all types. This parameter no longer does anything and is deprecated.'
-      ),
-      sent: z.boolean().optional().describe(
-        'Return notifications sent by the user. Must be false or omitted.'
-      ),
-      hidden: z.boolean().optional().describe(
-        'Whether to return hidden or non-hidden notifications. True only allowed on type "friendRequest".'
-      ),
-      after: z.string().optional().describe(
-        'Only return notifications sent after this Date. Ignored if type is "friendRequest".'
-      ),
-      n: z.number().min(1).max(100).optional().describe(
-        'The number of objects to return. Default: 60, Max: 100'
-      ),
-      offset: z.number().min(0).optional().describe(
-        'A zero-based offset from the default object sorting from where to start.'
-      ),
-    },
-    async (params) => {
+  const toolServer = server as any
+  // @ts-ignore: MCP tool overloads are too strict for this migration boundary
+  toolServer.tool(
+    'vrchat_list_notifications',
+    'List all notifications for the current user.',
+    listNotificationsParams as any,
+    async (params: any) => {
       try {
         await vrchatClient.auth()
-        const response = await vrchatClient.notificationsApi.getNotifications(
-          params.type,
-          params.sent,
-          params.hidden,
-          params.after,
-          params.n || 60,
-          params.offset || 0,
-        )
+        const response = await vrchatClient.vrchat.getNotifications({
+          query: {
+            type: params.type,
+            sent: params.sent,
+            hidden: params.hidden,
+            after: params.after,
+            n: params.n,
+            offset: params.offset,
+          }
+        })
         return {
-          content: [{
-            type: 'text',
-            text: JSON.stringify(response.data, null, 2)
-          }]
+          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
         }
       } catch (error) {
-        return {
-          content: [{
-            type: 'text',
-            text: 'Failed to retrieve notifications: ' + error
-          }]
-        }
+        return { content: [{ type: 'text', text: 'Failed to list notifications: ' + error }] }
       }
     }
   )

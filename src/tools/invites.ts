@@ -1,116 +1,94 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp'
+import type { AnySchema } from '@modelcontextprotocol/sdk/server/zod-compat'
 import { VRChatClient } from '../VRChatClient'
 import { z } from 'zod'
 
-export const createInvitesTools = (server: McpServer, vrchatClient: VRChatClient) => {
-  server.tool(
-    // Name
-    'vrchat_list_invite_messages',
-    // Description
-    'Returns a list of all the users Invite Messages. Admin Credentials are required to view messages of other users!',
-    {
-      userId: z.string().min(1).describe('Must be a valid user ID'),
-      messageType: z.enum(['message', 'response', 'request', 'requestResponse']).describe('The type of message to fetch')
-    },
-    async (params) => {
-      try {
-        await vrchatClient.auth()
-        const response = await vrchatClient.inviteApi.getInviteMessages(params.userId, params.messageType)
-        return {
-          content: [{
-            type: 'text',
-            text: JSON.stringify(response.data, null, 2)
-          }]
-        }
-      } catch (error) {
-        return {
-          content: [{
-            type: 'text',
-            text: 'Failed to get invite messages: ' + error
-          }]
-        }
-      }
-    }
-  )
+const listInviteMessagesParams: Record<string, AnySchema> = {
+  userId: z.string().describe('The user ID to list invite messages for'),
+  messageType: z.enum(['message', 'response', 'request', 'requestResponse']).describe('The type of invite message to list'),
+}
 
-  server.tool(
-    // Name
-    'vrchat_request_invite',
-    // Description
-    'Request an invite from a user. IMPORTANT: Always obtain explicit permission from the user before sending an invite request. Note that invite requests cannot be sent to users in private instances. Returns the Notification of type requestInvite that was sent.',
-    {
-      userId: z.string().min(1).describe('Must be a valid user ID'),
-      instanceId: z.string().describe('The instance ID to use when requesting an invite'),
-      messageSlot: z.number().min(0).max(11).describe('Slot number of the Request Message to use when request an invite'),
-    },
-    async (params) => {
+const requestInviteParams: Record<string, AnySchema> = {
+  userId: z.string().describe('The user ID to request an invite from'),
+  requestSlot: z.number().optional().describe('Slot number of the Request Message to use when requesting an invite'),
+}
+
+const getInviteMessageParams: Record<string, AnySchema> = {
+  userId: z.string().describe('The user ID to get the invite message for'),
+  messageType: z.enum(['message', 'response', 'request', 'requestResponse']).describe('The type of invite message'),
+  slot: z.number().describe('The slot number of the invite message'),
+}
+
+export const createInvitesTools = (server: McpServer, vrchatClient: VRChatClient) => {
+  const toolServer = server as any
+  // @ts-ignore: MCP tool overloads are too strict for this migration boundary
+  toolServer.tool(
+    'vrchat_list_invite_messages',
+    'List invite messages for a user.',
+    listInviteMessagesParams as any,
+    async (params: any) => {
       try {
         await vrchatClient.auth()
-        const response = await vrchatClient.inviteApi.inviteUser(params.userId, {
-          instanceId: params.instanceId,
-          messageSlot: params.messageSlot,
+        const response = await vrchatClient.vrchat.getInviteMessages({
+          path: {
+            userId: params.userId,
+            messageType: params.messageType,
+          }
         })
         return {
-          content: [{
-            type: 'text',
-            text: JSON.stringify(response.data, null, 2)
-          }]
+          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
         }
       } catch (error) {
-        return {
-          content: [{
-            type: 'text',
-            text: 'Failed to request invite: ' + error
-          }]
-        }
+        return { content: [{ type: 'text', text: 'Failed to list invite messages: ' + error }] }
       }
     }
   )
 
-  server.tool(
-    // Name
-    'vrchat_get_invite_message',
-    // Description
-    `Returns a specific invite message. Admin Credentials are required to view messages of other users!
-
-    Message type refers to a different collection of messages:
-    - message = Message during a normal invite
-    - response = Message when replying to a message
-    - request = Message when requesting an invite
-    - requestResponse = Message when replying to a request for invite
-    `,
-    {
-      userId: z.string().min(1).describe(
-        'Must be a valid user ID.'
-      ),
-      messageType: z.enum(['message', 'response', 'request', 'requestResponse']).default('message').describe(
-        'The type of message to fetch. Must be a valid InviteMessageType.'
-      ),
-      slot: z.number().min(0).max(11).describe(
-        'Slot number of the message to fetch.'
-      ),
-    },
-    async (params) => {
+  // @ts-ignore: MCP tool overloads are too strict for this migration boundary
+  toolServer.tool(
+    'vrchat_request_invite',
+    'Request an invite to a user\'s instance.',
+    requestInviteParams as any,
+    async (params: any) => {
       try {
         await vrchatClient.auth()
-        const response = await vrchatClient.inviteApi.getInviteMessage(
-          params.userId,
-          params.messageType,
-          params.slot
-        )
+        const response = await vrchatClient.vrchat.requestInvite({
+          path: {
+            userId: params.userId,
+          },
+          body: {
+            requestSlot: params.requestSlot,
+          }
+        })
         return {
-          content: [{
-            type: 'text',
-            text: JSON.stringify(response.data, null, 2)
-          }]
+          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
         }
       } catch (error) {
+        return { content: [{ type: 'text', text: 'Failed to request invite: ' + error }] }
+      }
+    }
+  )
+
+  // @ts-ignore: MCP tool overloads are too strict for this migration boundary
+  toolServer.tool(
+    'vrchat_get_invite_message',
+    'Get a specific invite message for a user.',
+    getInviteMessageParams as any,
+    async (params: any) => {
+      try {
+        await vrchatClient.auth()
+        const response = await vrchatClient.vrchat.getInviteMessage({
+          path: {
+            userId: params.userId,
+            messageType: params.messageType,
+            slot: params.slot,
+          }
+        })
         return {
-          content: [{
-            type: 'text',
-            text: 'Failed to retrieve invite message: ' + error
-          }]
+          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
         }
+      } catch (error) {
+        return { content: [{ type: 'text', text: 'Failed to get invite message: ' + error }] }
       }
     }
   )

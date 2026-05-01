@@ -1,85 +1,78 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp'
+import type { AnySchema } from '@modelcontextprotocol/sdk/server/zod-compat'
 import { VRChatClient } from '../VRChatClient'
 import { z } from 'zod'
 
+const createInstanceParams: Record<string, AnySchema> = {
+  worldId: z.string().describe('The world ID to create an instance of'),
+  type: z.enum(['public', 'hidden', 'friends', 'private', 'group']).describe('The type of instance to create'),
+  region: z.enum(['us', 'use', 'eu', 'jp', 'unknown']).describe('The region of the instance'),
+  ownerId: z.string().optional().describe('The owner ID for the instance (group or user)'),
+  roleIds: z.array(z.string()).optional().describe('Group roleIds that are allowed to join if type is "group" and groupAccessType is "member"'),
+  groupAccessType: z.enum(['members', 'plus', 'public']).optional().describe('The group access type for group instances'),
+  queueEnabled: z.boolean().optional().describe('Whether the instance has a queue'),
+  closedAt: z.string().optional().describe('The time after which users won\'t be allowed to join the instance'),
+  canRequestInvite: z.boolean().optional().describe('Only applies to invite type instances to make them invite+'),
+  hardClose: z.boolean().optional().describe('Whether the closing of the instance should kick people'),
+  inviteOnly: z.boolean().optional().describe('Whether the instance is invite only'),
+}
+
 export const createInstancesTools = (server: McpServer, vrchatClient: VRChatClient) => {
-  server.tool(
-    // Name
+  const toolServer = server as any
+  // @ts-ignore: MCP tool overloads are too strict for this migration boundary
+  toolServer.tool(
     'vrchat_get_instance',
-    // Description
     'Get information about a specific instance. Note: Detailed information about instance members is only available if you are the instance owner.',
     {
       worldId: z.string().describe('Must be a valid world ID.'),
       instanceId: z.string().describe('Must be a valid instance ID.'),
     },
-    async (params) => {
+    async (params: any) => {
       try {
         await vrchatClient.auth()
-        const instance = await vrchatClient.instancesApi.getInstance(params.worldId, params.instanceId)
+        const instance = await vrchatClient.vrchat.getInstance({
+          path: {
+            worldId: params.worldId,
+            instanceId: params.instanceId,
+          }
+        })
         return {
-          content: [{
-            type: 'text',
-            text: JSON.stringify(instance.data, null, 2)
-          }]
+          content: [{ type: 'text', text: JSON.stringify(instance.data, null, 2) }]
         }
       } catch (error) {
-        return {
-          content: [{
-            type: 'text',
-            text: 'Failed to get instance: ' + error
-          }]
-        }
+        return { content: [{ type: 'text', text: 'Failed to get instance: ' + error }] }
       }
     }
   )
 
-  server.tool(
-    // Name
+  // @ts-ignore: MCP tool overloads are too strict for this migration boundary
+  toolServer.tool(
     'vrchat_create_instance',
-    // Description
     'Create a new instance of a world.',
-    {
-      worldId: z.string(),
-      type: z.enum(['public', 'hidden', 'friends', 'private', 'group']),
-      region: z.enum(['us', 'use', 'eu', 'jp', 'unknown']).default('us'),
-      ownerId: z.string().nullable().optional(),
-      roleIds: z.array(z.string()).optional(),
-      groupAccessType: z.enum(['members', 'plus', 'public']).optional(),
-      queueEnabled: z.boolean().optional(),
-      closedAt: z.string().optional(), // date-time format
-      canRequestInvite: z.boolean().optional(),
-      hardClose: z.boolean().optional(),
-      inviteOnly: z.boolean().optional(),
-    },
-    async (params) => {
+    createInstanceParams as any,
+    async (params: any) => {
       try {
         await vrchatClient.auth()
-        const instance = await vrchatClient.instancesApi.createInstance({
-          worldId: params.worldId,
-          type: params.type,
-          region: params.region,
-          ownerId: params.ownerId,
-          roleIds: params.roleIds,
-          groupAccessType: params.groupAccessType,
-          queueEnabled: params.queueEnabled,
-          closedAt: params.closedAt,
-          canRequestInvite: params.canRequestInvite,
-          hardClose: params.hardClose,
-          inviteOnly: params.inviteOnly,
+        const instance = await vrchatClient.vrchat.createInstance({
+          body: {
+            worldId: params.worldId,
+            type: params.type,
+            region: params.region,
+            ownerId: params.ownerId,
+            roleIds: params.roleIds,
+            groupAccessType: params.groupAccessType,
+            queueEnabled: params.queueEnabled,
+            closedAt: params.closedAt ? new Date(params.closedAt) : undefined,
+            canRequestInvite: params.canRequestInvite,
+            hardClose: params.hardClose,
+            inviteOnly: params.inviteOnly,
+          }
         })
         return {
-          content: [{
-            type: 'text',
-            text: JSON.stringify(instance.data, null, 2)
-          }]
+          content: [{ type: 'text', text: JSON.stringify(instance.data, null, 2) }]
         }
       } catch (error) {
-        return {
-          content: [{
-            type: 'text',
-            text: 'Failed to create instance: ' + error
-          }]
-        }
+        return { content: [{ type: 'text', text: 'Failed to create instance: ' + error }] }
       }
     }
   )

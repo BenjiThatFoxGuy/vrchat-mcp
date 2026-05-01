@@ -1,64 +1,58 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp'
+import type { AnySchema } from '@modelcontextprotocol/sdk/server/zod-compat'
 import { VRChatClient } from '../VRChatClient'
 import { z } from 'zod'
 
+const joinGroupParams: Record<string, AnySchema> = {
+  groupId: z.string().min(1).describe('The group ID to join'),
+}
+
+const searchGroupsParams: Record<string, AnySchema> = {
+  query: z.string().optional().describe('Search query string to find groups by name or shortCode'),
+  offset: z.number().min(0).optional().describe('Offset for pagination, minimum 0'),
+  n: z.number().min(1).max(100).optional().describe('Number of groups to return, from 1 to 100'),
+}
+
 export const createGroupsTools = (server: McpServer, vrchatClient: VRChatClient) => {
-  server.tool(
+  const toolServer = server as any
+  // @ts-ignore: MCP tool overloads are too strict for this migration boundary
+  toolServer.tool(
     'vrchat_join_group',
-    'Join a VRChat group by ID',
-    {
-      groupId: z.string().describe('Must be a valid group ID')
-    },
-    async (args) => {
+    'Join a group by its ID.',
+    joinGroupParams as any,
+    async (params: any) => {
       try {
         await vrchatClient.auth()
-        const response = await vrchatClient.groupsApi.joinGroup(args.groupId)
+        const response = await vrchatClient.vrchat.joinGroup({ path: { groupId: params.groupId } })
         return {
-          content: [{
-            type: 'text',
-            text: JSON.stringify(response.data, null, 2)
-          }]
+          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
         }
       } catch (error) {
-        return {
-          content: [{
-            type: 'text',
-            text: 'Failed to join group: ' + error
-          }]
-        }
+        return { content: [{ type: 'text', text: 'Failed to join group: ' + error }] }
       }
     }
   )
 
-  server.tool(
+  // @ts-ignore: MCP tool overloads are too strict for this migration boundary
+  toolServer.tool(
     'vrchat_search_groups',
-    'Search VRChat groups by name or shortCode',
-    {
-      query: z.string().describe('Query to search for, can be either Group Name or Group shortCode'),
-      offset: z.number().min(0).optional().describe('A zero-based offset from the default object sorting'),
-      n: z.number().min(1).max(100).optional().describe('The number of objects to return')
-    },
-    async (args) => {
+    'Search for groups by name or other filters.',
+    searchGroupsParams as any,
+    async (params: any) => {
       try {
         await vrchatClient.auth()
-        const response = await vrchatClient.groupsApi.searchGroups(
-          args.query,
-          args.offset,
-          args.n
-        )
+        const response = await vrchatClient.vrchat.searchGroups({
+          query: {
+            query: params.query,
+            offset: params.offset,
+            n: params.n,
+          }
+        })
         return {
-          content: [{
-            type: 'text',
-            text: JSON.stringify(response.data, null, 2)
-          }]
+          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
         }
       } catch (error) {
-        return {
-          content: [{
-            type: 'text',
-            text: 'Failed to search groups: ' + error
-          }]
-        }
+        return { content: [{ type: 'text', text: 'Failed to search groups: ' + error }] }
       }
     }
   )

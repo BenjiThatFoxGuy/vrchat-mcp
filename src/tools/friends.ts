@@ -45,7 +45,8 @@ const getFriendsListToolConfig: any = {
 }
 
 export const createFriendsTools = (server: McpServer, vrchatClient: VRChatClient) => {
-  (server as any).registerTool(
+  const toolServer = server as any
+  toolServer.tool(
     'vrchat_send_friend_request',
     sendFriendRequestToolConfig,
     async (params: any) => {
@@ -61,7 +62,7 @@ export const createFriendsTools = (server: McpServer, vrchatClient: VRChatClient
     }
   )
 
-  (server as any).registerTool(
+  toolServer.tool(
     'vrchat_get_friends_list',
     getFriendsListToolConfig,
     async (params: any) => {

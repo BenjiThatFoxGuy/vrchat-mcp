@@ -16,6 +16,10 @@ const getNotificationParams: Record<string, AnySchema> = {
   notificationId: z.string().min(1).describe('The notification ID (e.g. "not_abc123")'),
 }
 
+const markNotificationReadParams: Record<string, AnySchema> = {
+  notificationId: z.string().min(1).describe('The notification ID to mark as read'),
+}
+
 export const createNotificationsTools = (server: McpServer, vrchatClient: VRChatClient) => {
   const toolServer = server as any
   // @ts-ignore: MCP tool overloads are too strict for this migration boundary
@@ -61,6 +65,44 @@ export const createNotificationsTools = (server: McpServer, vrchatClient: VRChat
         }
       } catch (error) {
         return { content: [{ type: 'text', text: 'Failed to get notification: ' + error }] }
+      }
+    }
+  )
+
+  // @ts-ignore: MCP tool overloads are too strict for this migration boundary
+  toolServer.tool(
+    'vrchat_mark_notification_read',
+    'Mark a notification as read/seen.',
+    markNotificationReadParams as any,
+    async (params: any) => {
+      try {
+        await vrchatClient.auth()
+        const response = await vrchatClient.vrchat.markNotificationAsRead({
+          path: { notificationId: params.notificationId }
+        })
+        return {
+          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+        }
+      } catch (error) {
+        return { content: [{ type: 'text', text: 'Failed to mark notification as read: ' + error }] }
+      }
+    }
+  )
+
+  // @ts-ignore: MCP tool overloads are too strict for this migration boundary
+  toolServer.tool(
+    'vrchat_clear_notifications',
+    'Clear all notifications for the current user.',
+    {} as any,
+    async () => {
+      try {
+        await vrchatClient.auth()
+        const response = await vrchatClient.vrchat.clearNotifications({})
+        return {
+          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+        }
+      } catch (error) {
+        return { content: [{ type: 'text', text: 'Failed to clear notifications: ' + error }] }
       }
     }
   )

@@ -21,6 +21,18 @@ const leaveGroupParams: Record<string, AnySchema> = {
   groupId: z.string().min(1).describe('The group ID to leave'),
 }
 
+const getGroupMembersParams: Record<string, AnySchema> = {
+  groupId: z.string().min(1).describe('The group ID'),
+  n: z.number().min(1).max(100).optional().describe('Number of members to return'),
+  offset: z.number().min(0).optional().describe('Offset for pagination'),
+}
+
+const getGroupInvitesParams: Record<string, AnySchema> = {
+  groupId: z.string().min(1).describe('The group ID'),
+  n: z.number().min(1).max(100).optional().describe('Number of invites to return'),
+  offset: z.number().min(0).optional().describe('Offset for pagination'),
+}
+
 export const createGroupsTools = (server: McpServer, vrchatClient: VRChatClient) => {
   const toolServer = server as any
   // @ts-ignore: MCP tool overloads are too strict for this migration boundary
@@ -99,6 +111,48 @@ export const createGroupsTools = (server: McpServer, vrchatClient: VRChatClient)
         }
       } catch (error) {
         return { content: [{ type: 'text', text: 'Failed to leave group: ' + error }] }
+      }
+    }
+  )
+
+  // @ts-ignore: MCP tool overloads are too strict for this migration boundary
+  toolServer.tool(
+    'vrchat_get_group_members',
+    'List members of a group.',
+    getGroupMembersParams as any,
+    async (params: any) => {
+      try {
+        await vrchatClient.auth()
+        const response = await vrchatClient.vrchat.getGroupMembers({
+          path: { groupId: params.groupId },
+          query: { n: params.n, offset: params.offset }
+        })
+        return {
+          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+        }
+      } catch (error) {
+        return { content: [{ type: 'text', text: 'Failed to get group members: ' + error }] }
+      }
+    }
+  )
+
+  // @ts-ignore: MCP tool overloads are too strict for this migration boundary
+  toolServer.tool(
+    'vrchat_get_group_invites',
+    'List sent invites for a group.',
+    getGroupInvitesParams as any,
+    async (params: any) => {
+      try {
+        await vrchatClient.auth()
+        const response = await vrchatClient.vrchat.getGroupInvites({
+          path: { groupId: params.groupId },
+          query: { n: params.n, offset: params.offset }
+        })
+        return {
+          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+        }
+      } catch (error) {
+        return { content: [{ type: 'text', text: 'Failed to get group invites: ' + error }] }
       }
     }
   )

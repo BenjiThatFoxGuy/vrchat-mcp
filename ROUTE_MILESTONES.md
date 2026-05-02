@@ -30,22 +30,28 @@ These routes are currently exposed by the MCP server in `src/tools/*`.
 - `vrchat_list_invite_messages`
 - `vrchat_request_invite`
 - `vrchat_get_invite_message`
+- `vrchat_respond_invite`
+- `vrchat_invite_user`
 - `vrchat_list_notifications`
 - `vrchat_get_notification`
+- `vrchat_mark_notification_read`
+- `vrchat_clear_notifications`
 - `vrchat_get_world`
 - `vrchat_list_active_worlds`
 - `vrchat_list_recent_worlds`
 - `vrchat_get_instance_by_short_name`
 - `vrchat_get_group`
 - `vrchat_leave_group`
+- `vrchat_get_group_members`
+- `vrchat_get_group_invites`
 
 ## Unsupported routes (yet)
 
 These are high-value routes exposed by the installed `vrchat@2.21.7` SDK that are not currently wrapped in MCP tools.
 
 ### User / social
-- `vrchat_get_blocked_groups` (list blocked groups)
-- `vrchat_get_user_notes` (fetch notes attached to a user)
+- `vrchat_get_user_notes` (already supported)
+- `vrchat_get_blocked_groups` (already supported)
 - `vrchat_get_user_inventory_item` (user inventory item lookup)
 - `vrchat_get_user_groups` / `vrchat_get_invited_groups` / `vrchat_get_user_group_requests`
 - `vrchat_get_user_all_group_permissions`
@@ -63,10 +69,10 @@ These are high-value routes exposed by the installed `vrchat@2.21.7` SDK that ar
 - `vrchat_clear_favorite_group`
 
 ### Notifications / invites
-- `vrchat_clear_notifications`
-- `vrchat_mark_notification_as_read`
-- `vrchat_respond_invite`
-- `vrchat_invite_user`
+- `vrchat_mark_notification_read` (already supported)
+- `vrchat_clear_notifications` (already supported)
+- `vrchat_respond_invite` (already supported)
+- `vrchat_invite_user` (already supported)
 - `vrchat_get_invite_message` (already supported)
 
 ### Worlds / instances
@@ -74,8 +80,8 @@ These are high-value routes exposed by the installed `vrchat@2.21.7` SDK that ar
 - `vrchat_get_world_publish_status`
 
 ### Groups
-- `vrchat_get_group_members`
-- `vrchat_get_group_invites`
+- `vrchat_get_group_members` (already supported)
+- `vrchat_get_group_invites` (already supported)
 - `vrchat_get_group_announcements`
 - `vrchat_get_group_roles`
 - `vrchat_get_group_transferability`

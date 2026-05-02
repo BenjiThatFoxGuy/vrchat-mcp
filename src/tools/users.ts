@@ -13,6 +13,15 @@ const getUserParams: Record<string, AnySchema> = {
   userId: z.string().min(1).describe('The VRChat user ID to look up'),
 }
 
+const getUserNotesParams: Record<string, AnySchema> = {
+  n: z.number().min(1).max(100).optional().describe('Number of notes to return'),
+  offset: z.number().min(0).optional().describe('Offset for pagination'),
+}
+
+const getBlockedGroupsParams: Record<string, AnySchema> = {
+  userId: z.string().min(1).describe('The user ID to get blocked groups for'),
+}
+
 export const createUsersTools = (server: McpServer, vrchatClient: VRChatClient) => {
   server.tool(
     'vrchat_get_current_user',
@@ -71,6 +80,44 @@ export const createUsersTools = (server: McpServer, vrchatClient: VRChatClient) 
         }
       } catch (error) {
         return { content: [{ type: 'text', text: 'Failed to get user info: ' + error }] }
+      }
+    }
+  )
+
+  server.tool(
+    'vrchat_get_user_notes',
+    'Get your notes for users.',
+    getUserNotesParams as any,
+    async (params: any) => {
+      try {
+        await vrchatClient.auth()
+        const response = await vrchatClient.vrchat.getUserNotes({
+          query: { n: params.n, offset: params.offset }
+        })
+        return {
+          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+        }
+      } catch (error) {
+        return { content: [{ type: 'text', text: 'Failed to get user notes: ' + error }] }
+      }
+    }
+  )
+
+  server.tool(
+    'vrchat_get_blocked_groups',
+    'Get groups blocked by a user.',
+    getBlockedGroupsParams as any,
+    async (params: any) => {
+      try {
+        await vrchatClient.auth()
+        const response = await vrchatClient.vrchat.getBlockedGroups({
+          path: { userId: params.userId }
+        })
+        return {
+          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+        }
+      } catch (error) {
+        return { content: [{ type: 'text', text: 'Failed to get blocked groups: ' + error }] }
       }
     }
   )

@@ -19,6 +19,17 @@ const getInviteMessageParams: Record<string, AnySchema> = {
   slot: z.number().describe('The slot number of the invite message'),
 }
 
+const respondInviteParams: Record<string, AnySchema> = {
+  notificationId: z.string().min(1).describe('The notification ID of the invite to respond to'),
+  responseSlot: z.number().optional().describe('The slot number of the response message to use'),
+}
+
+const inviteUserParams: Record<string, AnySchema> = {
+  userId: z.string().min(1).describe('The user ID to invite'),
+  worldId: z.string().optional().describe('The world ID to invite the user to'),
+  instanceId: z.string().optional().describe('The instance ID to invite the user to'),
+}
+
 export const createInvitesTools = (server: McpServer, vrchatClient: VRChatClient) => {
   const toolServer = server as any
   // @ts-ignore: MCP tool overloads are too strict for this migration boundary
@@ -89,6 +100,51 @@ export const createInvitesTools = (server: McpServer, vrchatClient: VRChatClient
         }
       } catch (error) {
         return { content: [{ type: 'text', text: 'Failed to get invite message: ' + error }] }
+      }
+    }
+  )
+
+  // @ts-ignore: MCP tool overloads are too strict for this migration boundary
+  toolServer.tool(
+    'vrchat_respond_invite',
+    'Respond to an invite or invite request.',
+    respondInviteParams as any,
+    async (params: any) => {
+      try {
+        await vrchatClient.auth()
+        const response = await vrchatClient.vrchat.respondInvite({
+          path: { notificationId: params.notificationId },
+          body: { responseSlot: params.responseSlot }
+        })
+        return {
+          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+        }
+      } catch (error) {
+        return { content: [{ type: 'text', text: 'Failed to respond to invite: ' + error }] }
+      }
+    }
+  )
+
+  // @ts-ignore: MCP tool overloads are too strict for this migration boundary
+  toolServer.tool(
+    'vrchat_invite_user',
+    'Send an invite to a user to join your current instance.',
+    inviteUserParams as any,
+    async (params: any) => {
+      try {
+        await vrchatClient.auth()
+        const response = await vrchatClient.vrchat.inviteUser({
+          path: { userId: params.userId },
+          body: {
+            worldId: params.worldId,
+            instanceId: params.instanceId,
+          }
+        })
+        return {
+          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
+        }
+      } catch (error) {
+        return { content: [{ type: 'text', text: 'Failed to invite user: ' + error }] }
       }
     }
   )

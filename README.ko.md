@@ -112,7 +112,10 @@ npx vrchat-mcp
 - vrchat_get_invite_message: 특정 초대 메시지 가져오기
 
 ### 알림 관련
-- vrchat_get_notifications: 알림 목록 가져오기
+- vrchat_list_notifications: 알림 목록 가져오기(`type`으로 필터링 가능, 그룹 가입 요청 확인은 `groupRequest` 사용)
+- vrchat_get_notification: ID로 단일 알림 가져오기
+- vrchat_mark_notification_read: 알림을 읽음으로 표시
+- vrchat_clear_notifications: 모든 알림 지우기
 
 ## 디버깅
 

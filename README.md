@@ -114,7 +114,10 @@ This Model Context Protocol server provides the following VRChat-related tools:
 - vrchat_get_invite_message: Get a specific invite message
 
 ### Notification Related
-- vrchat_get_notifications: Get a list of notifications
+- vrchat_list_notifications: Get a list of notifications (supports filtering by `type`, e.g. `friendRequest`, `requestInvite`, `groupRequest` for pending group join requests)
+- vrchat_get_notification: Get a single notification by its ID
+- vrchat_mark_notification_read: Mark a notification as read/seen
+- vrchat_clear_notifications: Clear all notifications
 
 ## Debugging
 

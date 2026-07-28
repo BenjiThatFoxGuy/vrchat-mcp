@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp'
 import type { AnySchema } from '@modelcontextprotocol/sdk/server/zod-compat'
 import { VRChatClient } from '../VRChatClient'
+import { toolResult, toolError } from '../toolResult'
 import { z } from 'zod'
 
 const listFavoritedWorldsParams: Record<string, AnySchema> = {
@@ -55,11 +56,9 @@ export const createWorldsTools = (server: McpServer, vrchatClient: VRChatClient)
             order: params.order,
           }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(worlds.data, null, 2) }]
-        }
+        return toolResult(worlds, 'Failed to get favorited worlds')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to get favorited worlds: ' + error }] }
+        return toolError('Failed to get favorited worlds: ' + error)
       }
     }
   )
@@ -86,11 +85,9 @@ export const createWorldsTools = (server: McpServer, vrchatClient: VRChatClient)
             notag: params.notag,
           }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(worlds.data, null, 2) }]
-        }
+        return toolResult(worlds, 'Failed to search worlds')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to search worlds: ' + error }] }
+        return toolError('Failed to search worlds: ' + error)
       }
     }
   )
@@ -106,11 +103,9 @@ export const createWorldsTools = (server: McpServer, vrchatClient: VRChatClient)
         const world = await vrchatClient.vrchat.getWorld({
           path: { worldId: params.worldId }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(world.data, null, 2) }]
-        }
+        return toolResult(world, 'Failed to get world')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to get world: ' + error }] }
+        return toolError('Failed to get world: ' + error)
       }
     }
   )
@@ -126,11 +121,9 @@ export const createWorldsTools = (server: McpServer, vrchatClient: VRChatClient)
         const worlds = await vrchatClient.vrchat.getActiveWorlds({
           query: { n: params.n, offset: params.offset }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(worlds.data, null, 2) }]
-        }
+        return toolResult(worlds, 'Failed to list active worlds')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to list active worlds: ' + error }] }
+        return toolError('Failed to list active worlds: ' + error)
       }
     }
   )
@@ -146,11 +139,9 @@ export const createWorldsTools = (server: McpServer, vrchatClient: VRChatClient)
         const worlds = await vrchatClient.vrchat.getRecentWorlds({
           query: { n: params.n, offset: params.offset }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(worlds.data, null, 2) }]
-        }
+        return toolResult(worlds, 'Failed to list recent worlds')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to list recent worlds: ' + error }] }
+        return toolError('Failed to list recent worlds: ' + error)
       }
     }
   )

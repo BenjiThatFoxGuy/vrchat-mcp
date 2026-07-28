@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp'
 import type { AnySchema } from '@modelcontextprotocol/sdk/server/zod-compat'
 import { VRChatClient } from '../VRChatClient'
+import { toolResult, toolError } from '../toolResult'
 import { z } from 'zod'
 
 const favoriteGroupsParams: Record<string, AnySchema> = {
@@ -44,11 +45,9 @@ export const createFavoritesTools = (server: McpServer, vrchatClient: VRChatClie
             ownerId: params.ownerId,
           }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to list favorite groups')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to list favorite groups: ' + error }] }
+        return toolError('Failed to list favorite groups: ' + error)
       }
     }
   )
@@ -69,11 +68,9 @@ export const createFavoritesTools = (server: McpServer, vrchatClient: VRChatClie
             tag: params.tag,
           }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to list favorites')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to list favorites: ' + error }] }
+        return toolError('Failed to list favorites: ' + error)
       }
     }
   )
@@ -93,11 +90,9 @@ export const createFavoritesTools = (server: McpServer, vrchatClient: VRChatClie
             tags: params.tags,
           }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to add favorite')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to add favorite: ' + error }] }
+        return toolError('Failed to add favorite: ' + error)
       }
     }
   )
@@ -116,11 +111,9 @@ export const createFavoritesTools = (server: McpServer, vrchatClient: VRChatClie
             favoriteId: params.favoriteId,
           }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to remove favorite')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to remove favorite: ' + error }] }
+        return toolError('Failed to remove favorite: ' + error)
       }
     }
   )
@@ -136,11 +129,9 @@ export const createFavoritesTools = (server: McpServer, vrchatClient: VRChatClie
         const response = await vrchatClient.vrchat.getFavoritedAvatars({
           query: { n: params.n }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to get favorited avatars')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to get favorited avatars: ' + error }] }
+        return toolError('Failed to get favorited avatars: ' + error)
       }
     }
   )

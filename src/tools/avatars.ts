@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp'
 import type { AnySchema } from '@modelcontextprotocol/sdk/server/zod-compat'
 import { VRChatClient } from '../VRChatClient'
+import { toolResult, toolError } from '../toolResult'
 import { z } from 'zod'
 
 const selectAvatarParams: Record<string, AnySchema> = {
@@ -34,11 +35,9 @@ export const createAvatarsTools = (server: McpServer, vrchatClient: VRChatClient
       try {
         await vrchatClient.auth()
         const response = await vrchatClient.vrchat.selectAvatar({ path: { avatarId: params.avatarId } })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to select avatar')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to select avatar: ' + error }] }
+        return toolError('Failed to select avatar: ' + error)
       }
     }
   )
@@ -68,11 +67,9 @@ export const createAvatarsTools = (server: McpServer, vrchatClient: VRChatClient
             platform: params.platform,
           }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to search avatars')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to search avatars: ' + error }] }
+        return toolError('Failed to search avatars: ' + error)
       }
     }
   )

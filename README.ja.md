@@ -112,7 +112,10 @@ Claude Desktopを起動する前に設定ファイルに以下の設定を追加
 - vrchat_get_invite_message: 招待メッセージの取得
 
 ### 通知関連
-- vrchat_get_notifications: 通知リストの取得
+- vrchat_list_notifications: 通知リストの取得(`type` でフィルタ可能。グループ参加リクエストの確認には `groupRequest` を指定)
+- vrchat_get_notification: IDを指定して単一の通知を取得
+- vrchat_mark_notification_read: 通知を既読にする
+- vrchat_clear_notifications: すべての通知をクリア
 
 ## デバッグ
 

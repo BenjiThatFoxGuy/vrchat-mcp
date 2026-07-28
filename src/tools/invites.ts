@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp'
 import type { AnySchema } from '@modelcontextprotocol/sdk/server/zod-compat'
 import { VRChatClient } from '../VRChatClient'
+import { toolResult, toolError } from '../toolResult'
 import { z } from 'zod'
 
 const listInviteMessagesParams: Record<string, AnySchema> = {
@@ -46,11 +47,9 @@ export const createInvitesTools = (server: McpServer, vrchatClient: VRChatClient
             messageType: params.messageType,
           }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to list invite messages')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to list invite messages: ' + error }] }
+        return toolError('Failed to list invite messages: ' + error)
       }
     }
   )
@@ -71,11 +70,9 @@ export const createInvitesTools = (server: McpServer, vrchatClient: VRChatClient
             requestSlot: params.requestSlot,
           }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to request invite')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to request invite: ' + error }] }
+        return toolError('Failed to request invite: ' + error)
       }
     }
   )
@@ -95,11 +92,9 @@ export const createInvitesTools = (server: McpServer, vrchatClient: VRChatClient
             slot: params.slot,
           }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to get invite message')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to get invite message: ' + error }] }
+        return toolError('Failed to get invite message: ' + error)
       }
     }
   )
@@ -116,11 +111,9 @@ export const createInvitesTools = (server: McpServer, vrchatClient: VRChatClient
           path: { notificationId: params.notificationId },
           body: { responseSlot: params.responseSlot }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to respond to invite')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to respond to invite: ' + error }] }
+        return toolError('Failed to respond to invite: ' + error)
       }
     }
   )
@@ -140,11 +133,9 @@ export const createInvitesTools = (server: McpServer, vrchatClient: VRChatClient
             instanceId: params.instanceId,
           }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to invite user')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to invite user: ' + error }] }
+        return toolError('Failed to invite user: ' + error)
       }
     }
   )

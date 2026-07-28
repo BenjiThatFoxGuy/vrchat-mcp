@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp'
 import type { AnySchema } from '@modelcontextprotocol/sdk/server/zod-compat'
 import { VRChatClient } from '../VRChatClient'
+import { toolResult, toolError } from '../toolResult'
 import { z } from 'zod'
 
 const listNotificationsParams: Record<string, AnySchema> = {
@@ -40,11 +41,9 @@ export const createNotificationsTools = (server: McpServer, vrchatClient: VRChat
             offset: params.offset,
           }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to list notifications')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to list notifications: ' + error }] }
+        return toolError('Failed to list notifications: ' + error)
       }
     }
   )
@@ -60,11 +59,9 @@ export const createNotificationsTools = (server: McpServer, vrchatClient: VRChat
         const response = await vrchatClient.vrchat.getNotification({
           path: { notificationId: params.notificationId }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to get notification')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to get notification: ' + error }] }
+        return toolError('Failed to get notification: ' + error)
       }
     }
   )
@@ -80,11 +77,9 @@ export const createNotificationsTools = (server: McpServer, vrchatClient: VRChat
         const response = await vrchatClient.vrchat.markNotificationAsRead({
           path: { notificationId: params.notificationId }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to mark notification as read')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to mark notification as read: ' + error }] }
+        return toolError('Failed to mark notification as read: ' + error)
       }
     }
   )
@@ -98,11 +93,9 @@ export const createNotificationsTools = (server: McpServer, vrchatClient: VRChat
       try {
         await vrchatClient.auth()
         const response = await vrchatClient.vrchat.clearNotifications({})
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to clear notifications')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to clear notifications: ' + error }] }
+        return toolError('Failed to clear notifications: ' + error)
       }
     }
   )

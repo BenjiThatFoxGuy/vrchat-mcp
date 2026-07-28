@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp'
 import type { AnySchema } from '@modelcontextprotocol/sdk/server/zod-compat'
 import { VRChatClient } from '../VRChatClient'
+import { toolResult, toolError } from '../toolResult'
 import { z } from 'zod'
 
 const createInstanceParams: Record<string, AnySchema> = {
@@ -40,11 +41,9 @@ export const createInstancesTools = (server: McpServer, vrchatClient: VRChatClie
             instanceId: params.instanceId,
           }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(instance.data, null, 2) }]
-        }
+        return toolResult(instance, 'Failed to get instance')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to get instance: ' + error }] }
+        return toolError('Failed to get instance: ' + error)
       }
     }
   )
@@ -72,11 +71,9 @@ export const createInstancesTools = (server: McpServer, vrchatClient: VRChatClie
             inviteOnly: params.inviteOnly,
           }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(instance.data, null, 2) }]
-        }
+        return toolResult(instance, 'Failed to create instance')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to create instance: ' + error }] }
+        return toolError('Failed to create instance: ' + error)
       }
     }
   )
@@ -92,11 +89,9 @@ export const createInstancesTools = (server: McpServer, vrchatClient: VRChatClie
         const instance = await vrchatClient.vrchat.getInstanceByShortName({
           path: { shortName: params.shortName }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(instance.data, null, 2) }]
-        }
+        return toolResult(instance, 'Failed to get instance by short name')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to get instance by short name: ' + error }] }
+        return toolError('Failed to get instance by short name: ' + error)
       }
     }
   )

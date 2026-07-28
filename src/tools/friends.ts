@@ -1,89 +1,63 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp'
 import type { AnySchema } from '@modelcontextprotocol/sdk/server/zod-compat'
 import { VRChatClient } from '../VRChatClient'
+import { toolResult, toolError } from '../toolResult'
 import { z } from 'zod'
 
-const sendFriendRequestSchema: any = z.object({
-  userId: z.string().min(1),
-})
-
-const getFriendsListSchema: any = z.object({
-  offset: z.number().min(0).optional(),
-  n: z.number().min(1).max(100).optional(),
-  offline: z.boolean().optional(),
-})
-
-const friendActionSchema: any = z.object({
-  userId: z.string().min(1),
-})
-
-const sendFriendRequestToolConfig: any = {
-  title: 'Send a friend request to another user.',
-  inputSchema: sendFriendRequestSchema,
+const userIdParams: Record<string, AnySchema> = {
+  userId: z.string().min(1).describe('The VRChat user ID'),
 }
 
-const getFriendsListToolConfig: any = {
-  title: 'Retrieve a list of VRChat friend information.',
-  description: 'The following information can be retrieved:\n' +
-    '- "bio"\n' +
-    '- "bioLinks"\n' +
-    '- "currentAvatarImageUrl"\n' +
-    '- "currentAvatarThumbnailImageUrl"\n' +
-    '- "currentAvatarTags"\n' +
-    '- "developerType"\n' +
-    '- "displayName"\n' +
-    '- "fallbackAvatar"\n' +
-    '- "id"\n' +
-    '- "isFriend"\n' +
-    '- "last_platform"\n' +
-    '- "last_login"\n' +
-    '- "profilePicOverride"\n' +
-    '- "pronouns"\n' +
-    '- "status"\n' +
-    '- "statusDescription"\n' +
-    '- "tags"\n' +
-    '- "userIcon"\n' +
-    '- "location"\n' +
-    '- "friendKey"',
-  inputSchema: getFriendsListSchema,
+const getFriendsListParams: Record<string, AnySchema> = {
+  offset: z.number().min(0).optional().describe('Offset for pagination, minimum 0'),
+  n: z.number().min(1).max(100).optional().describe('Number of friends to return, from 1 to 100'),
+  offline: z.boolean().optional().describe('Return offline friends instead of online friends'),
 }
 
-const friendStatusToolConfig: any = {
-  title: 'Check the friend status with another user.',
-  inputSchema: friendActionSchema,
-}
-
-const unfriendToolConfig: any = {
-  title: 'Remove a friend by user ID.',
-  inputSchema: friendActionSchema,
-}
-
-const mutualFriendsToolConfig: any = {
-  title: 'List mutual friends with another user.',
-  inputSchema: friendActionSchema,
-}
+const getFriendsListDescription = 'Retrieve a list of VRChat friend information.\n' +
+  'The following information can be retrieved:\n' +
+  '- "bio"\n' +
+  '- "bioLinks"\n' +
+  '- "currentAvatarImageUrl"\n' +
+  '- "currentAvatarThumbnailImageUrl"\n' +
+  '- "currentAvatarTags"\n' +
+  '- "developerType"\n' +
+  '- "displayName"\n' +
+  '- "fallbackAvatar"\n' +
+  '- "id"\n' +
+  '- "isFriend"\n' +
+  '- "last_platform"\n' +
+  '- "last_login"\n' +
+  '- "profilePicOverride"\n' +
+  '- "pronouns"\n' +
+  '- "status"\n' +
+  '- "statusDescription"\n' +
+  '- "tags"\n' +
+  '- "userIcon"\n' +
+  '- "location"\n' +
+  '- "friendKey"'
 
 export const createFriendsTools = (server: McpServer, vrchatClient: VRChatClient) => {
   const toolServer = server as any
   toolServer.tool(
     'vrchat_send_friend_request',
-    sendFriendRequestToolConfig,
+    'Send a friend request to another user.',
+    userIdParams as any,
     async (params: any) => {
       try {
         await vrchatClient.auth()
         const response = await vrchatClient.vrchat.friend({ path: { userId: params.userId } })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to send friend request')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to send friend request: ' + error }] }
+        return toolError('Failed to send friend request: ' + error)
       }
     }
   )
 
   toolServer.tool(
     'vrchat_get_friends_list',
-    getFriendsListToolConfig,
+    getFriendsListDescription,
+    getFriendsListParams as any,
     async (params: any) => {
       try {
         await vrchatClient.auth()
@@ -94,59 +68,54 @@ export const createFriendsTools = (server: McpServer, vrchatClient: VRChatClient
             offline: params.offline || false,
           }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to retrieve friends')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to retrieve friends: ' + error }] }
+        return toolError('Failed to retrieve friends: ' + error)
       }
     }
   )
 
   toolServer.tool(
     'vrchat_get_friend_status',
-    friendStatusToolConfig,
+    'Check the friend status with another user.',
+    userIdParams as any,
     async (params: any) => {
       try {
         await vrchatClient.auth()
         const response = await vrchatClient.vrchat.getFriendStatus({ path: { userId: params.userId } })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to retrieve friend status')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to retrieve friend status: ' + error }] }
+        return toolError('Failed to retrieve friend status: ' + error)
       }
     }
   )
 
   toolServer.tool(
     'vrchat_unfriend',
-    unfriendToolConfig,
+    'Remove a friend by user ID.',
+    userIdParams as any,
     async (params: any) => {
       try {
         await vrchatClient.auth()
         const response = await vrchatClient.vrchat.unfriend({ path: { userId: params.userId } })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to unfriend user')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to unfriend user: ' + error }] }
+        return toolError('Failed to unfriend user: ' + error)
       }
     }
   )
 
   toolServer.tool(
     'vrchat_get_mutual_friends',
-    mutualFriendsToolConfig,
+    'List mutual friends with another user.',
+    userIdParams as any,
     async (params: any) => {
       try {
         await vrchatClient.auth()
         const response = await vrchatClient.vrchat.getMutualFriends({ path: { userId: params.userId } })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to get mutual friends')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to get mutual friends: ' + error }] }
+        return toolError('Failed to get mutual friends: ' + error)
       }
     }
   )

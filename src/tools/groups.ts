@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp'
 import type { AnySchema } from '@modelcontextprotocol/sdk/server/zod-compat'
 import { VRChatClient } from '../VRChatClient'
+import { toolResult, toolError } from '../toolResult'
 import { z } from 'zod'
 
 const joinGroupParams: Record<string, AnySchema> = {
@@ -44,11 +45,9 @@ export const createGroupsTools = (server: McpServer, vrchatClient: VRChatClient)
       try {
         await vrchatClient.auth()
         const response = await vrchatClient.vrchat.joinGroup({ path: { groupId: params.groupId } })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to join group')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to join group: ' + error }] }
+        return toolError('Failed to join group: ' + error)
       }
     }
   )
@@ -68,11 +67,9 @@ export const createGroupsTools = (server: McpServer, vrchatClient: VRChatClient)
             n: params.n,
           }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to search groups')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to search groups: ' + error }] }
+        return toolError('Failed to search groups: ' + error)
       }
     }
   )
@@ -88,11 +85,9 @@ export const createGroupsTools = (server: McpServer, vrchatClient: VRChatClient)
         const response = await vrchatClient.vrchat.getGroup({
           path: { groupId: params.groupId }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to get group')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to get group: ' + error }] }
+        return toolError('Failed to get group: ' + error)
       }
     }
   )
@@ -106,11 +101,9 @@ export const createGroupsTools = (server: McpServer, vrchatClient: VRChatClient)
       try {
         await vrchatClient.auth()
         const response = await vrchatClient.vrchat.leaveGroup({ path: { groupId: params.groupId } })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to leave group')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to leave group: ' + error }] }
+        return toolError('Failed to leave group: ' + error)
       }
     }
   )
@@ -127,11 +120,9 @@ export const createGroupsTools = (server: McpServer, vrchatClient: VRChatClient)
           path: { groupId: params.groupId },
           query: { n: params.n, offset: params.offset }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to get group members')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to get group members: ' + error }] }
+        return toolError('Failed to get group members: ' + error)
       }
     }
   )
@@ -148,11 +139,9 @@ export const createGroupsTools = (server: McpServer, vrchatClient: VRChatClient)
           path: { groupId: params.groupId },
           query: { n: params.n, offset: params.offset }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to get group invites')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to get group invites: ' + error }] }
+        return toolError('Failed to get group invites: ' + error)
       }
     }
   )

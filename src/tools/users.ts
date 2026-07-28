@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp'
 import type { AnySchema } from '@modelcontextprotocol/sdk/server/zod-compat'
 import { VRChatClient } from '../VRChatClient'
+import { toolResult, toolError } from '../toolResult'
 import { z } from 'zod'
 
 const searchUsersParams: Record<string, AnySchema> = {
@@ -31,11 +32,9 @@ export const createUsersTools = (server: McpServer, vrchatClient: VRChatClient) 
       try {
         await vrchatClient.auth()
         const response = await vrchatClient.vrchat.getCurrentUser()
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to retrieve user')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to retrieve user: ' + error }] }
+        return toolError('Failed to retrieve user: ' + error)
       }
     }
   )
@@ -54,11 +53,9 @@ export const createUsersTools = (server: McpServer, vrchatClient: VRChatClient) 
             offset: params.offset,
           }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to search users')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to search users: ' + error }] }
+        return toolError('Failed to search users: ' + error)
       }
     }
   )
@@ -75,11 +72,9 @@ export const createUsersTools = (server: McpServer, vrchatClient: VRChatClient) 
             userId: params.userId,
           }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to get user info')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to get user info: ' + error }] }
+        return toolError('Failed to get user info: ' + error)
       }
     }
   )
@@ -94,11 +89,9 @@ export const createUsersTools = (server: McpServer, vrchatClient: VRChatClient) 
         const response = await vrchatClient.vrchat.getUserNotes({
           query: { n: params.n, offset: params.offset }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to get user notes')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to get user notes: ' + error }] }
+        return toolError('Failed to get user notes: ' + error)
       }
     }
   )
@@ -113,11 +106,9 @@ export const createUsersTools = (server: McpServer, vrchatClient: VRChatClient) 
         const response = await vrchatClient.vrchat.getBlockedGroups({
           path: { userId: params.userId }
         })
-        return {
-          content: [{ type: 'text', text: JSON.stringify(response.data, null, 2) }]
-        }
+        return toolResult(response, 'Failed to get blocked groups')
       } catch (error) {
-        return { content: [{ type: 'text', text: 'Failed to get blocked groups: ' + error }] }
+        return toolError('Failed to get blocked groups: ' + error)
       }
     }
   )
